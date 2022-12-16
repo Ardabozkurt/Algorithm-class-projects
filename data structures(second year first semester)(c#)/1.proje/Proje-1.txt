@@ -1,0 +1,177 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ProjeBirNoktaBir
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Random random = new Random();
+            Console.WriteLine(" Oluşurulacak alan için x değeri giriniz ");
+            double genislik = Convert.ToDouble(Console.ReadLine());
+            Console.WriteLine(" Oluşurulacak alan için y değeri giriniz ");
+            double yukseklik = Convert.ToDouble(Console.ReadLine());
+
+            double[,] noktalarMatrisi = MatrisOlustur(genislik, yukseklik, random);
+            double[,] uzaklikMatrisi = UzaklikMatrisiOlustur(noktalarMatrisi);
+            int turSayisi = 1;
+            for (int i = 0; i < 10; i++)
+            {
+                NoktalariDolas(uzaklikMatrisi, random,ref turSayisi);
+            }
+            Console.Read();
+
+        }
+
+        public static double[,] MatrisOlustur(double Genislik, double Yukseklik, Random random)
+        {
+            
+            Console.WriteLine(" Kaç tane nokta oluşturulacağını giriniz ");
+            int n = Convert.ToInt32(Console.ReadLine());
+            double[,] noktalarMatrisi = new double[n, 2];
+            for (int i = 0; i < n; i++)
+            {
+                double x = random.NextDouble() * Genislik;
+                double y = random.NextDouble() * Yukseklik;
+
+                noktalarMatrisi[i, 0] = x;
+                noktalarMatrisi[i, 1] = y;
+            }
+            return noktalarMatrisi;
+        }
+
+        public static double[,] UzaklikMatrisiOlustur(double[,] noktalarMatrisi)
+        {
+            int n = noktalarMatrisi.Length / 2;
+            double[,] uzaklikMatrisi = new double[n, n];
+            for (int i = 0; i < n; i++)
+            {
+                for (int k = 0; k < n; k++)
+                {
+                    double xlerFarki = noktalarMatrisi[i, 0] - noktalarMatrisi[k, 0];
+                    double ylerFarki = noktalarMatrisi[i, 1] - noktalarMatrisi[k, 1];
+
+                    double xlerfarkiKaresi = xlerFarki * xlerFarki;
+                    double ylerFarkiKaresi = ylerFarki * ylerFarki;
+                    double sonuc = Math.Sqrt(xlerfarkiKaresi + ylerFarkiKaresi);
+                    uzaklikMatrisi[i, k] = sonuc;
+                }
+            }
+            Print2DArray(uzaklikMatrisi);
+            Console.WriteLine("");
+            return uzaklikMatrisi;
+        }
+
+        public static void Print2DArray(double[,] matrix)
+        {
+            /*
+            for (int i = 0; i < matrix.GetLength(0); i++)
+            {
+                for (int j = 0; j < matrix.GetLength(1); j++)
+                {
+
+                    Console.Write(matrix[i, j].ToString("0.00") + "\t");
+
+                }
+                Console.WriteLine();
+            }
+            */
+
+            Console.WriteLine("Uzaklık Matrisi DM");
+            Console.Write("\t\t");
+            for (int i = 0; i < matrix.GetLength(0); i++)
+            {
+                Console.Write(i + "\t");
+            }
+            Console.WriteLine("\n");
+
+            for (int i = 0; i < matrix.GetLength(0); i++)
+            {
+                Console.Write("\t" + i + "|\t");
+                for (int j = 0; j < matrix.GetLength(1); j++)
+                {
+                    Console.Write(Convert.ToDouble(String.Format("{0:0.0}", matrix[i, j])) + "\t");
+                }
+                Console.WriteLine();
+            }
+        }
+
+        public static void NoktalariDolas(double[,] uzaklikmatrisi, Random random, ref int turSayisi)
+        {
+            Console.WriteLine("Tur Sayısı = " + turSayisi);
+            turSayisi++;
+            int n = (int)Math.Sqrt(uzaklikmatrisi.Length);
+            int randomNoktaIndex = random.Next(0, n);
+            Console.WriteLine("Başlangıç Noktamız = " + randomNoktaIndex);
+            double[] uzakliklarDizisi = new double[n];
+
+            for (int i = 0; i < n; i++)
+            {
+                uzakliklarDizisi[i] = uzaklikmatrisi[i, randomNoktaIndex];
+            }
+
+            int[] cikarilanNoktalar = new int[n - 1];
+            double[] uzakliklar = new double[n - 1];
+            for (int i = 0; i < n - 1; i++)
+            {
+                double[,] indexVeUzaklik = NoktaCikar(n, uzakliklarDizisi);
+                cikarilanNoktalar[i] = (int)indexVeUzaklik[0, 0];
+                uzakliklar[i] = indexVeUzaklik[0, 1];
+
+            }
+            double toplamUzaklik = 0.0;
+            foreach (double item in uzakliklar)
+            {
+                toplamUzaklik += item;
+            }/*
+            Console.Write(" Rota ");
+            foreach (var item in cikarilanNoktalar)
+            {
+                Console.Write(item + " - ");
+            }
+            Console.WriteLine(" Toplam Uzaklik " + toplamUzaklik);
+            */
+           
+            Console.WriteLine("Noktalara uğranma sırası = ");
+            foreach (var item in cikarilanNoktalar)
+            {
+                Console.Write(item.ToString() + " - ");
+            }
+            Console.WriteLine("");
+            Console.WriteLine("Gİdilen yolun uzunluğu = " + Convert.ToDouble(String.Format("{0:0.0}", toplamUzaklik)) + "\n");
+
+
+        }
+
+        public static double[,] NoktaCikar(int n, double[] uzakliklarDizisi)
+        {
+
+            double minimunUzaklik = 500;
+            int minUzaklikIndex = n + 1;
+            for (int i = 0; i < n; i++)
+            {
+                if (uzakliklarDizisi[i] == 0)
+                {
+                    continue;
+                }
+                else
+                {
+                    if (uzakliklarDizisi[i] < minimunUzaklik)
+                    {
+                        minimunUzaklik = uzakliklarDizisi[i];
+                        minUzaklikIndex = i;
+                    }
+                }
+            }
+            double[,] indexVeUzaiklik = new double[1, 2];
+            indexVeUzaiklik[0, 0] = minUzaklikIndex + 1;
+            indexVeUzaiklik[0, 1] = minimunUzaklik;
+            uzakliklarDizisi[minUzaklikIndex] = 0;
+            return indexVeUzaiklik;
+        }
+    }
+}
